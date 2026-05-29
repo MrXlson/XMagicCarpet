@@ -1,6 +1,7 @@
 package me.xverse.magiccarpet;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
@@ -10,6 +11,11 @@ import org.bukkit.util.Vector;
 public class CarpetTask {
 
     public static void start(Player p, BlockDisplay display) {
+
+        // Povolení létání
+        p.setAllowFlight(true);
+
+        p.setFlying(true);
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(
                 Main.getInstance(),
@@ -29,15 +35,22 @@ public class CarpetTask {
                         return;
                     }
 
+                    // Pokud hráč sesedne
+                    if (!display.getPassengers().contains(p)) {
+
+                        CarpetManager.removeCarpet(p);
+
+                        return;
+                    }
+
                     Location loc = p.getLocation().clone();
 
-                    // Hover pod hráčem
+                    // Carpet pod hráčem
                     loc.subtract(0, 1.2, 0);
 
-                    // Pohyb podle hráče
                     Vector velocity = p.getVelocity();
 
-                    // Smooth movement
+                    // Movement podle chůze
                     loc.add(
                             velocity.getX() * 2,
                             0,
@@ -50,14 +63,20 @@ public class CarpetTask {
                         loc.subtract(0, 0.3, 0);
                     }
 
-                    // Jump = nahoru
-                    if (velocity.getY() > 0.1) {
+                    // Jump/fly = nahoru
+                    if (velocity.getY() > 0.05) {
 
                         loc.add(0, 0.5, 0);
                     }
 
-                    // Teleport carpetu
+                    // Smooth teleport
                     display.teleport(loc);
+
+                    // Neustálé udržení letu
+                    if (!p.isFlying()) {
+
+                        p.setFlying(true);
+                    }
 
                 },
                 0L,
