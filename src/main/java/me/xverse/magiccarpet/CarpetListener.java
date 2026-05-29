@@ -5,7 +5,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 public class CarpetListener implements Listener {
 
@@ -13,24 +12,6 @@ public class CarpetListener implements Listener {
     public void onQuit(PlayerQuitEvent e) {
 
         CarpetManager.removeCarpet(e.getPlayer());
-    }
-
-    @EventHandler
-    public void onSneak(PlayerToggleSneakEvent e) {
-
-        Player p = e.getPlayer();
-
-        // Double shift remove
-        if(
-                p.isSneaking()
-                &&
-                CarpetManager.carpets.containsKey(
-                        p.getUniqueId()
-                )
-        ) {
-
-            CarpetManager.removeCarpet(p);
-        }
     }
 
     @EventHandler
