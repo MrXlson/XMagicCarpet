@@ -1,6 +1,7 @@
 package me.xverse.magiccarpet;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -67,6 +68,14 @@ public class CarpetManager {
             carpets.get(uuid).remove();
 
             carpets.remove(uuid);
+        }
+
+        // Odebrání flightu
+        if(p.getGameMode() != GameMode.CREATIVE) {
+
+            p.setFlying(false);
+
+            p.setAllowFlight(false);
         }
     }
 }
