@@ -3,7 +3,6 @@ package me.xverse.magiccarpet;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
@@ -12,12 +11,14 @@ import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class CarpetManager {
 
-    public static HashMap<UUID, BlockDisplay> carpets = new HashMap<>();
+    public static HashMap<UUID, CarpetData> carpets = new HashMap<>();
 
     public static HashMap<UUID, BukkitTask> tasks = new HashMap<>();
 
@@ -25,31 +26,59 @@ public class CarpetManager {
 
         removeCarpet(p);
 
-        Location loc = p.getLocation();
+        Location base = p.getLocation().clone();
 
-        BlockData data = Bukkit.createBlockData(Material.RED_CARPET);
+        int size = ConfigManager.SIZE();
 
-        BlockDisplay display = loc.getWorld().spawn(
-                loc,
-                BlockDisplay.class
+        List<BlockDisplay> displays = new ArrayList<>();
+
+        BlockData data = Bukkit.createBlockData(
+                ConfigManager.MATERIAL()
         );
 
-        display.setBlock(data);
+        int offset = size / 2;
 
-        display.setTransformation(
-                new Transformation(
-                        new Vector3f(-1.5f, -0.1f, -1.5f),
-                        new AxisAngle4f(),
-                        new Vector3f(3f, 0.1f, 3f),
-                        new AxisAngle4f()
-                )
+        for(int x = -offset; x <= offset; x++) {
+
+            for(int z = -offset; z <= offset; z++) {
+
+                Location loc = base.clone().add(x, -1.2, z);
+
+                BlockDisplay display = loc.getWorld().spawn(
+                        loc,
+                        BlockDisplay.class
+                );
+
+                display.setBlock(data);
+
+                display.setTransformation(
+                        new Transformation(
+                                new Vector3f(-0.5f, 0f, -0.5f),
+                                new AxisAngle4f(),
+                                new Vector3f(1f, 0.1f, 1f),
+                                new AxisAngle4f()
+                        )
+                );
+
+                display.setInterpolationDuration(1);
+
+                displays.add(display);
+
+                ParticleTask.start(display);
+            }
+        }
+
+        carpets.put(
+                p.getUniqueId(),
+                new CarpetData(displays)
         );
 
-        display.addPassenger(p);
+        // Flight enable
+        p.setAllowFlight(true);
 
-        carpets.put(p.getUniqueId(), display);
+        p.setFlying(true);
 
-        CarpetTask.start(p, display);
+        CarpetTask.start(p);
     }
 
     public static void removeCarpet(Player p) {
@@ -65,12 +94,20 @@ public class CarpetManager {
 
         if(carpets.containsKey(uuid)) {
 
-            carpets.get(uuid).remove();
+            CarpetData data = carpets.get(uuid);
+
+            for(BlockDisplay display : data.getDisplays()) {
+
+                if(display != null && display.isValid()) {
+
+                    display.remove();
+                }
+            }
 
             carpets.remove(uuid);
         }
 
-        // Odebrání flightu
+        // Disable flight
         if(p.getGameMode() != GameMode.CREATIVE) {
 
             p.setFlying(false);
