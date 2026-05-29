@@ -15,36 +15,48 @@ public class CarpetTask {
                 Main.getInstance(),
                 () -> {
 
-                    if(!p.isOnline()) {
+                    if (!p.isOnline()) {
 
                         CarpetManager.removeCarpet(p);
 
                         return;
                     }
 
-                    if(!display.isValid()) {
+                    if (!display.isValid()) {
 
                         CarpetManager.removeCarpet(p);
 
                         return;
                     }
 
-                    Location loc = display.getLocation();
+                    Location loc = p.getLocation().clone();
 
-                    Vector direction = p.getLocation()
-                            .getDirection()
-                            .normalize();
+                    // Hover pod hráčem
+                    loc.subtract(0, 1.2, 0);
 
-                    double speed = 0.6;
+                    // Pohyb podle hráče
+                    Vector velocity = p.getVelocity();
 
-                    Vector move = direction.multiply(speed);
+                    // Smooth movement
+                    loc.add(
+                            velocity.getX() * 2,
+                            0,
+                            velocity.getZ() * 2
+                    );
 
-                    loc.add(move);
+                    // Shift = dolů
+                    if (p.isSneaking()) {
 
-                    if(p.isSneaking()) {
                         loc.subtract(0, 0.3, 0);
                     }
 
+                    // Jump = nahoru
+                    if (velocity.getY() > 0.1) {
+
+                        loc.add(0, 0.5, 0);
+                    }
+
+                    // Teleport carpetu
                     display.teleport(loc);
 
                 },
