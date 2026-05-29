@@ -3,6 +3,7 @@ package me.xverse.magiccarpet;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
@@ -19,8 +20,37 @@ public class CarpetListener implements Listener {
 
         Player p = e.getPlayer();
 
-        if(!e.isSneaking()) return;
+        // Double shift remove
+        if(
+                p.isSneaking()
+                &&
+                CarpetManager.carpets.containsKey(
+                        p.getUniqueId()
+                )
+        ) {
 
-        CarpetManager.removeCarpet(p);
+            CarpetManager.removeCarpet(p);
+        }
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent e) {
+
+        if(!(e.getEntity() instanceof Player p)) return;
+
+        if(
+                e.getCause()
+                        == EntityDamageEvent.DamageCause.FALL
+        ) {
+
+            if(
+                    CarpetManager.carpets.containsKey(
+                            p.getUniqueId()
+                    )
+            ) {
+
+                e.setCancelled(true);
+            }
+        }
     }
 }
