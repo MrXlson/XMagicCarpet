@@ -11,6 +11,8 @@ public class Main extends JavaPlugin {
 
         instance = this;
 
+        saveDefaultConfig();
+
         getCommand("mc").setExecutor(new CarpetCommand());
 
         getServer().getPluginManager().registerEvents(
