@@ -28,64 +28,73 @@ public class CarpetTask {
                         return;
                     }
 
-                    CarpetData carpetData = CarpetManager.carpets.get(
+                    CarpetData data = CarpetManager.carpets.get(
                             p.getUniqueId()
                     );
 
-                    // PLAYER WALK MOVEMENT
-                    Vector velocity = p.getVelocity().clone();
+                    Location center = data.getCenter();
 
-                    // Ignore vertical
-                    velocity.setY(0);
+                    Vector move = p.getVelocity().clone();
 
-                    // Smooth movement
-                    Vector movement = velocity.multiply(1.8);
+                    move.setY(0);
 
-                    for(BlockDisplay display : carpetData.getDisplays()) {
+                    move.multiply(1.2);
 
-                        if(display == null || !display.isValid()) continue;
+                    center.add(move);
 
-                        Location loc = display.getLocation();
+                    // Jump = up
+                    if(p.getVelocity().getY() > 0.15) {
 
-                        // Move carpet WITH player walking
-                        loc.add(movement);
-
-                        // Keep under player
-                        loc.setY(
-                                p.getLocation().getY() - 1.2
-                        );
-
-                        // Rotation only visual
-                        display.setRotation(
-                                p.getLocation().getYaw(),
-                                0
-                        );
-
-                        display.teleport(loc);
+                        center.add(0, 0.4, 0);
                     }
 
-                    // Hover effect
-                    Vector hover = p.getVelocity().clone();
-
-                    hover.setY(0);
-
-                    p.setVelocity(hover);
-
-                    // Ascend
-                    if(p.isJumping()) {
-
-                        p.setVelocity(
-                                p.getVelocity().setY(0.4)
-                        );
-                    }
-
-                    // Descend
+                    // Sneak = down
                     if(p.isSneaking()) {
 
-                        p.setVelocity(
-                                p.getVelocity().setY(-0.3)
-                        );
+                        center.subtract(0, 0.3, 0);
                     }
+
+                    data.setCenter(center);
+
+                    int size = ConfigManager.SIZE();
+
+                    int offset = size / 2;
+
+                    int i = 0;
+
+                    for(int x = -offset; x <= offset; x++) {
+
+                        for(int z = -offset; z <= offset; z++) {
+
+                            BlockDisplay display =
+                                    data.getDisplays().get(i);
+
+                            if(display == null
+                                    || !display.isValid()) {
+
+                                i++;
+
+                                continue;
+                            }
+
+                            Location target = center.clone().add(
+                                    x,
+                                    -1.2,
+                                    z
+                            );
+
+                            display.teleport(target);
+
+                            i++;
+                        }
+                    }
+
+                    // Keep player on carpet
+                    Location playerLoc = p.getLocation();
+
+                    playerLoc.setY(center.getY());
+
+                    p.teleport(playerLoc);
 
                 },
                 0L,
@@ -97,4 +106,4 @@ public class CarpetTask {
                 task
         );
     }
-}
+                        }
