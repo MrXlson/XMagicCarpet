@@ -1,7 +1,6 @@
 package me.xverse.magiccarpet;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
@@ -10,70 +9,76 @@ import org.bukkit.util.Vector;
 
 public class CarpetTask {
 
-    public static void start(Player p, BlockDisplay display) {
-
-        // Povolení létání
-        p.setAllowFlight(true);
-
-        p.setFlying(true);
+    public static void start(Player p) {
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(
                 Main.getInstance(),
                 () -> {
 
-                    if (!p.isOnline()) {
+                    if(!p.isOnline()) {
 
                         CarpetManager.removeCarpet(p);
 
                         return;
                     }
 
-                    if (!display.isValid()) {
-
-                        CarpetManager.removeCarpet(p);
-
+                    if(!CarpetManager.carpets.containsKey(
+                            p.getUniqueId()
+                    )) {
                         return;
                     }
 
-                    // Pokud hráč sesedne
-                    if (!display.getPassengers().contains(p)) {
-
-                        CarpetManager.removeCarpet(p);
-
-                        return;
-                    }
-
-                    Location loc = p.getLocation().clone();
-
-                    // Carpet pod hráčem
-                    loc.subtract(0, 1.2, 0);
+                    CarpetData carpetData = CarpetManager.carpets.get(
+                            p.getUniqueId()
+                    );
 
                     Vector velocity = p.getVelocity();
 
-                    // Movement podle chůze
-                    loc.add(
-                            velocity.getX() * 2,
-                            0,
-                            velocity.getZ() * 2
-                    );
+                    double speed = ConfigManager.SPEED();
 
-                    // Shift = dolů
-                    if (p.isSneaking()) {
+                    for(BlockDisplay display : carpetData.getDisplays()) {
 
-                        loc.subtract(0, 0.3, 0);
+                        if(display == null || !display.isValid()) continue;
+
+                        Location loc = display.getLocation();
+
+                        // Smooth follow
+                        loc.add(
+                                velocity.getX() * speed,
+                                0,
+                                velocity.getZ() * speed
+                        );
+
+                        // Hover stabilization
+                        double targetY = p.getLocation().getY() - 1.2;
+
+                        double smoothY = loc.getY()
+                                + ((targetY - loc.getY()) * 0.3);
+
+                        loc.setY(smoothY);
+
+                        // Ascend
+                        if(velocity.getY() > 0.05) {
+
+                            loc.add(0, 0.4, 0);
+                        }
+
+                        // Descend
+                        if(p.isSneaking()) {
+
+                            loc.subtract(0, 0.3, 0);
+                        }
+
+                        display.teleport(loc);
+
+                        display.setRotation(
+                                p.getLocation().getYaw(),
+                                0
+                        );
                     }
 
-                    // Jump/fly = nahoru
-                    if (velocity.getY() > 0.05) {
-
-                        loc.add(0, 0.5, 0);
-                    }
-
-                    // Smooth teleport
-                    display.teleport(loc);
-
-                    // Neustálé udržení letu
-                    if (!p.isFlying()) {
+                    // Keep flying
+                    if(!p.isFlying()) {
 
                         p.setFlying(true);
                     }
