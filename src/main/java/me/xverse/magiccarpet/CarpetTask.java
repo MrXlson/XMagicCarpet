@@ -32,55 +32,30 @@ public class CarpetTask {
                             p.getUniqueId()
                     );
 
-                    // Movement direction
-                    Vector direction = p.getLocation()
-                            .getDirection()
-                            .normalize();
+                    // PLAYER WALK MOVEMENT
+                    Vector velocity = p.getVelocity().clone();
 
-                    double speed = ConfigManager.SPEED();
+                    // Ignore vertical
+                    velocity.setY(0);
 
-                    Vector movement = new Vector(
-                            direction.getX() * speed,
-                            0,
-                            direction.getZ() * speed
-                    );
+                    // Smooth movement
+                    Vector movement = velocity.multiply(1.8);
 
-                    // Sprint boost
-                    if(p.isSprinting()) {
-
-                        movement.multiply(1.5);
-                    }
-
-                    // Carpet movement
                     for(BlockDisplay display : carpetData.getDisplays()) {
 
                         if(display == null || !display.isValid()) continue;
 
                         Location loc = display.getLocation();
 
+                        // Move carpet WITH player walking
                         loc.add(movement);
 
-                        // Hover stabilization
-                        double targetY = p.getLocation().getY() - 1.2;
+                        // Keep under player
+                        loc.setY(
+                                p.getLocation().getY() - 1.2
+                        );
 
-                        double smoothY = loc.getY()
-                                + ((targetY - loc.getY()) * 0.15);
-
-                        loc.setY(smoothY);
-
-                        // Jump = ascend
-                        if(p.getVelocity().getY() > 0.1) {
-
-                            loc.add(0, 0.35, 0);
-                        }
-
-                        // Sneak = descend
-                        if(p.isSneaking()) {
-
-                            loc.subtract(0, 0.25, 0);
-                        }
-
-                        // Smooth rotation
+                        // Rotation only visual
                         display.setRotation(
                                 p.getLocation().getYaw(),
                                 0
@@ -89,14 +64,28 @@ public class CarpetTask {
                         display.teleport(loc);
                     }
 
-                    // Push player WITH carpet
-                    Vector playerMove = movement.clone();
+                    // Hover effect
+                    Vector hover = p.getVelocity().clone();
 
-                    playerMove.setY(
-                            p.getVelocity().getY()
-                    );
+                    hover.setY(0);
 
-                    p.setVelocity(playerMove);
+                    p.setVelocity(hover);
+
+                    // Ascend
+                    if(p.isJumping()) {
+
+                        p.setVelocity(
+                                p.getVelocity().setY(0.4)
+                        );
+                    }
+
+                    // Descend
+                    if(p.isSneaking()) {
+
+                        p.setVelocity(
+                                p.getVelocity().setY(-0.3)
+                        );
+                    }
 
                 },
                 0L,
