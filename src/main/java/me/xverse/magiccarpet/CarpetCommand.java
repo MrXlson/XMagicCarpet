@@ -19,7 +19,21 @@ public class CarpetCommand implements CommandExecutor {
             return true;
         }
 
+        // Toggle system
+        if(CarpetManager.carpets.containsKey(
+                p.getUniqueId()
+        )) {
+
+            CarpetManager.removeCarpet(p);
+
+            p.sendMessage("§cMagicCarpet disabled.");
+
+            return true;
+        }
+
         CarpetManager.spawnCarpet(p);
+
+        p.sendMessage("§aMagicCarpet enabled.");
 
         return true;
     }
