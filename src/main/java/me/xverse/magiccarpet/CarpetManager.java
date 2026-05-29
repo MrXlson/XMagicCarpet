@@ -26,9 +26,7 @@ public class CarpetManager {
 
         removeCarpet(p);
 
-        Location base = p.getLocation().clone();
-
-        int size = ConfigManager.SIZE();
+        Location center = p.getLocation().clone();
 
         List<BlockDisplay> displays = new ArrayList<>();
 
@@ -36,13 +34,19 @@ public class CarpetManager {
                 ConfigManager.MATERIAL()
         );
 
+        int size = ConfigManager.SIZE();
+
         int offset = size / 2;
 
         for(int x = -offset; x <= offset; x++) {
 
             for(int z = -offset; z <= offset; z++) {
 
-                Location loc = base.clone().add(x, -1.2, z);
+                Location loc = center.clone().add(
+                        x,
+                        -1.2,
+                        z
+                );
 
                 BlockDisplay display = loc.getWorld().spawn(
                         loc,
@@ -60,8 +64,6 @@ public class CarpetManager {
                         )
                 );
 
-                display.setInterpolationDuration(1);
-
                 displays.add(display);
 
                 ParticleTask.start(display);
@@ -70,13 +72,8 @@ public class CarpetManager {
 
         carpets.put(
                 p.getUniqueId(),
-                new CarpetData(displays)
+                new CarpetData(displays, center)
         );
-
-        // Flight enable
-        p.setAllowFlight(true);
-
-        p.setFlying(true);
 
         CarpetTask.start(p);
     }
@@ -107,12 +104,11 @@ public class CarpetManager {
             carpets.remove(uuid);
         }
 
-        // Disable flight
         if(p.getGameMode() != GameMode.CREATIVE) {
 
-            p.setFlying(false);
-
             p.setAllowFlight(false);
+
+            p.setFlying(false);
         }
     }
 }
