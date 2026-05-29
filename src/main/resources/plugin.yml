@@ -1,0 +1,13 @@
+name: XMagicCarpet
+
+version: 1.0
+
+main: me.xverse.magiccarpet.Main
+
+api-version: '1.21'
+
+author: MrXlson
+
+commands:
+  mc:
+    description: Spawn magic carpet
