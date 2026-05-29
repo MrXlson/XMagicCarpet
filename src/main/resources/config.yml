@@ -1,0 +1,9 @@
+carpet:
+
+  speed: 0.6
+
+  size: 3
+
+  material: LIGHT_BLUE_STAINED_GLASS
+
+  particles: true
